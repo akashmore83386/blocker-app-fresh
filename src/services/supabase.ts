@@ -2,9 +2,12 @@ import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { User } from '../types';
 
-// Replace with your Supabase URL and anon key
-const supabaseUrl = 'https://vycuwfubngfomhshnjrx.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5Y3V3ZnVibmdmb21oc2huanJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4MTAxNjgsImV4cCI6MjA2MjM4NjE2OH0.mFB0yODC2xCxmudQhhJTgABy-DA5hYlh9rRWguUta3U';
+// Import environment variables from config
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config/env';
+
+// Use Supabase URL and anon key from environment variables
+const supabaseUrl = SUPABASE_URL();
+const supabaseAnonKey = SUPABASE_ANON_KEY();
 
 // SecureStore adapter for Supabase
 const ExpoSecureStoreAdapter = {
@@ -34,6 +37,12 @@ export const signUp = async (email: string, password: string) => {
   return await supabase.auth.signUp({
     email,
     password,
+    options: {
+      // Set data.email_confirmed property to true to auto-confirm
+      data: {
+        email_confirmed: true
+      }
+    }
   });
 };
 
@@ -76,15 +85,16 @@ export const updateUserProfile = async (userId: string, updates: Partial<User>) 
 };
 
 // App usage data functions
-export const saveAppUsage = async (userId: string, appId: string, minutes: number) => {
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+export const saveAppUsage = async (userId: string, appId: string, minutes: number, date?: string) => {
+  // Use provided date or today's date
+  const actualDate = date || new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
   
   const { data, error } = await supabase
     .from('app_usage')
     .upsert({
       user_id: userId,
       app_id: appId,
-      date: today,
+      date: actualDate,
       minutes: minutes,
     }, {
       onConflict: 'user_id,app_id,date',

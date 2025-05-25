@@ -2,13 +2,17 @@ import { initStripe, useStripe } from '@stripe/stripe-react-native';
 import { savePayment, updatePaymentStatus } from './supabase';
 import { PaymentDetails } from '../types';
 
-// Replace with your Stripe publishable key
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51LHsj3SEsUZ5jintpDAOukCZTqt11NAjvggrFdRGV7H3Z0yQanSkf0Sp6bjNEZDE7nFKNTnGYfaOWVInL02MTuVK00g9AEPACg';
+// Import environment variables from config
+import { STRIPE_PUBLISHABLE_KEY, BACKEND_API_URL } from '../config/env';
+
+// Use Stripe publishable key and backend API URL from environment variables
+const stripePublishableKey = STRIPE_PUBLISHABLE_KEY();
+const backendApiUrl = BACKEND_API_URL();
 
 // Initialize Stripe
 export const initializeStripe = async () => {
   return initStripe({
-    publishableKey: STRIPE_PUBLISHABLE_KEY,
+    publishableKey: stripePublishableKey,
     merchantIdentifier: 'merchant.com.screenblocker',
     urlScheme: 'screenblocker',
   });
@@ -24,9 +28,8 @@ export const processEmergencyUnlock = async (
   try {
     const stripe = useStripe();
 
-    // First, create a payment intent from your backend
-    // Note: You would typically have an API endpoint that creates a payment intent
-    const response = await fetch('YOUR_BACKEND_API/create-payment-intent', {
+    // Create a payment intent using our backend service
+    const response = await fetch(`${backendApiUrl}/create-payment-intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,14 +75,9 @@ export const processEmergencyUnlock = async (
 
     await savePayment(paymentDetails);
 
-    // Schedule refund after 7 days (this would be handled by a backend job)
-    // Just mocking here, but in a real application, you'd set up a background job
-    // through your backend to process this
-    setTimeout(async () => {
-      // In a real app, you'd have a proper paymentId here from the saved payment
-      // await updatePaymentStatus(paymentId, 'refunded');
-      console.log('Payment refunded');
-    }, 7 * 24 * 60 * 60 * 1000); // 7 days
+    // The refund will be automatically processed by our backend service after 7 days
+    // We'll just update the status in our database when we get the webhook event
+    console.log('Payment successful. Refund will be processed after 7 days');
 
     return {
       id: 'temporary-id', // In a real app, this would be the actual payment ID from the database

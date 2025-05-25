@@ -1,6 +1,10 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@env": ["./.env"]
+    },
+    "typeRoots": ["./src/config", "./node_modules/@types"]
   }
 }

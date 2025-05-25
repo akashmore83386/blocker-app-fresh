@@ -47,9 +47,10 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       if (error) {
         Alert.alert('Error', error.message);
       } else {
+        // Registration successful, navigate directly to Login screen
         Alert.alert(
           'Success',
-          'Registration successful! Please check your email to confirm your account.',
+          'Registration successful! You can now login with your credentials.',
           [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
         );
       }
